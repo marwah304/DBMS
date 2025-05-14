@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Submissions for {{ assignment.title }}</title>
+    <style>
+        /* Your styling here */
+    </style>
+</head>
+<body>
+    <h1>Submissions for Assignment: {{ assignment.title }}</h1>
+    <ul>
+        {% for submission in submissions %}
+            <li style="margin-bottom: 1rem; padding: 1rem; border: 1px solid #ddd; border-radius: 5px;">
+                <strong>Student:</strong> {{ submission.student.name }}<br>
+                <strong>File:</strong> 
+                <a href="{{ url_for('download_submission', filename=submission.file_path) }}" class="download-btn">Download</a>
+                <strong>Grade:</strong> {{ submission.grade or "Not graded" }}<br>
+                <strong>Feedback:</strong> {{ submission.feedback or "No feedback" }}<br>
+                <!-- Link to grade the assignment -->
+                <a href="{{ url_for('grade_assignment', submission_id=submission.submission_id) }}" style="color: #007bff; text-decoration: none;">Grade</a>
+            </li>
+        {% else %}
+            <li>No submissions yet.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
