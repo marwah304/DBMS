@@ -554,3 +554,171 @@ def list_assignments():
 
     return render_template('student_assignments.html', assignments=assignments_data)
 
+@app.route('/submit_assignment', methods=['POST'])
+def submit_assignment():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    if 'submission_file' not in request.files:
+        flash('No file part', 'error')
+        return redirect(request.url)
+
+    file = request.files['submission_file']
+
+    if file.filename == '':
+        flash('No selected file', 'error')
+        return redirect(request.url)
+
+    if file:
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(app.config['UPLOAD_FOLDER_SUBMISSIONS'], filename) 
+        file.save(save_path)
+
+        db_file_path = os.path.join('submissions', filename).replace("\\", "/") 
+
+        new_submission = Submission(
+            student_id=session['user_id'],
+            assignment_id=request.form['assignment_id'],
+            file_path=db_file_path
+        )
+        db.session.add(new_submission)
+        db.session.commit()
+
+        flash('Assignment submitted successfully', 'success')
+        return redirect(url_for('student_dashboard'))
+
+@app.route('/view_submissions/<int:assignment_id>')
+def view_submissions(assignment_id):
+    if 'user_id' not in session or session.get('role') != 'instructor':
+        return redirect(url_for('login'))
+    
+    assignment = Assignment.query.get_or_404(assignment_id)
+    
+    submissions = Submission.query.options(joinedload(Submission.student)).filter_by(assignment_id=assignment_id).all()
+    
+    return render_template('view_assignments.html', assignment=assignment, submissions=submissions)
+
+@app.route('/grade_assignment/<int:submission_id>', methods=['GET', 'POST'])
+def grade_assignment(submission_id):
+    if 'user_id' not in session or session.get('role') != 'instructor':
+        return redirect(url_for('login'))
+    submission = Submission.query.get_or_404(submission_id)
+    
+    if request.method == 'POST':
+        grade = request.form['grade']
+        feedback = request.form['feedback']
+        
+
+        submission.grade = grade
+        submission.feedback = feedback
+        db.session.commit()
+
+        print(f"Updated Submission ID {submission.submission_id} with grade {submission.grade}")
+        
+        update_course_progress(submission.student_id, submission.assignment.course_id)
+        
+        flash('Grade and feedback have been saved successfully!', 'success')
+        return redirect(url_for('view_submissions', assignment_id=submission.assignment_id))
+    
+    return render_template('grade_assignments.html', submission=submission)
+
+
+@app.route('/download_submission/<path:filename>')
+def download_submission(filename):
+    try:
+        return send_from_directory(os.path.join(app.root_path, 'static'), filename, as_attachment=True)
+    except FileNotFoundError:
+        return "File not found", 404
+
+
+@app.route('/student/grades')
+def student_grades():
+    if 'user_id' not in session or session.get('role') != 'student':
+        return redirect(url_for('login'))
+    
+    student_id = session['user_id']
+    
+    graded_submissions = Submission.query.filter_by(student_id=student_id).filter(Submission.grade != None).all()
+    
+    return render_template('student_grades.html', submissions=graded_submissions)
+
+def calculate_course_progress(student_id, course_id):
+    total_assignments = Assignment.query.filter_by(course_id=course_id).count()
+    print(f"Total assignments in course {course_id}: {total_assignments}") 
+    
+  
+    completed_assignments = db.session.query(Submission).join(Assignment).filter(
+        Submission.student_id == student_id,
+        Assignment.course_id == course_id,
+        Submission.grade != None
+    ).count()
+    print(f"Completed assignments for student {student_id} in course {course_id}: {completed_assignments}") 
+   
+    if total_assignments == 0:
+        return 0
+    completion_percentage = (completed_assignments / total_assignments) * 100
+    print(f"Calculated completion percentage: {completion_percentage}%")  
+    return completion_percentage
+
+
+def update_course_progress(student_id, course_id):
+    completion_percentage = calculate_course_progress(student_id, course_id)
+    print(f"Calculated completion: {completion_percentage}%")  
+    
+    progress = Progress.query.filter_by(student_id=student_id, course_id=course_id).first()
+    if progress:
+        progress.completion_percentage = completion_percentage
+        if completion_percentage == 100:
+            progress.status = "completed"
+        else:
+            progress.status = "in-progress"
+        print(f"Updated progress: {progress.completion_percentage}% - {progress.status}")  
+    else:
+        new_progress = Progress(student_id=student_id, course_id=course_id, completion_percentage=completion_percentage)
+        if completion_percentage == 100:
+            new_progress.status = "completed"
+        print(f"New progress created: {new_progress.completion_percentage}% - {new_progress.status}")  
+        db.session.add(new_progress)
+
+    db.session.commit()
+
+
+   
+@app.route('/progress_tracking')
+def progress_tracking():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    user = User.query.options(joinedload(User.enrollments).joinedload(Enrollment.course)).filter_by(user_id=user_id).first()
+
+    if not user:
+        return "User not found", 404
+
+    enrolled_courses = [enrollment.course for enrollment in user.enrollments]
+    progress_data = []  
+
+    for course in enrolled_courses:
+          progress = Progress.query.filter_by(student_id=user_id, course_id=course.course_id).first()
+
+          if not progress:
+             progress_percentage = 0
+             status = 'in-progress'
+          else:
+             progress_percentage = progress.completion_percentage
+             status = progress.status
+
+          progress_data.append({
+            'course': course,
+            'course_id': course.course_id,  
+            'progress_percentage': progress_percentage,
+            'status': status
+    })
+
+    return render_template('progress_tracking.html', user=user, enrolled_courses=enrolled_courses, progress_data=progress_data)
+
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True, use_reloader=True)
