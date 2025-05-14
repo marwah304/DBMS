@@ -294,3 +294,114 @@ def create_db():
 
         db.session.add_all(courses)
         db.session.commit()
+          student_courses = {
+            '202331': ['CSE101', 'CS232'],
+            '202332': ['CSE101'],
+            '202333': ['CS231', 'CS112'],
+            '202334': ['MT101', 'HM101'],
+            '202335': ['ES205', 'CS232'],
+            '202336': ['CSE101', 'CS231'],
+            '202337': ['CSE103', 'AI201'],
+            '202338': ['CS112', 'CS232'],
+            '202339': ['MT101', 'CS112'],
+            '202340': ['ES205', 'AI201'],
+        }
+
+        existing_students = {s.user_id for s in User.query.filter_by(role='student').all()}
+
+        enrollments = []
+        for student_id, course_ids in student_courses.items():
+            if student_id not in existing_students:
+                print(f"❌ Invalid student ID: {student_id}")
+                continue
+            for course_id in course_ids:
+                if course_id is None:
+                    print(f"⚠ Skipped None course_id for student {student_id}")
+                    continue
+                enrollments.append(Enrollment(student_id=student_id, course_id=course_id, status='enrolled'))
+
+
+        db.session.add_all(enrollments)
+        db.session.commit()
+
+        assignments = [
+            Assignment(title='Assignment 1', description='Basic concepts', file_path='uploads/a1.txt', course_id='CSE101'),
+            Assignment(title='Assignment 2', description='Intro to data structures', file_path='uploads/a2.txt', course_id='CS232'),
+            Assignment(title='Assignment 3', description='OS Processes', file_path='uploads/a3.txt', course_id='CSE103'),
+            Assignment(title='Assignment 4', description='Python Loops', file_path='uploads/a4.txt', course_id='AI201'),
+            Assignment(title='Assignment 5', description='Logic & Sets', file_path='uploads/a5.txt', course_id='CS231'),
+            Assignment(title='Assignment 6', description='Classes and Objects', file_path='uploads/a6.txt', course_id='CS112'),
+            Assignment(title='Assignment 7', description='Matrix operations', file_path='uploads/a7.txt', course_id='MT101'),
+            Assignment(title='Assignment 8', description='Essay writing', file_path='uploads/a8.txt', course_id='HM101'),
+            Assignment(title='Assignment 9', description='Vector spaces', file_path='uploads/a9.txt', course_id='ES205'),
+            Assignment(title='Assignment 10', description='SQL Queries', file_path='uploads/a10.txt', course_id='CS233'),
+        ]
+
+        db.session.add_all(assignments)
+        db.session.commit()
+
+        return "Database and demo data created."
+    except Exception as e:
+        return f"Error: {e}"
+    
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        name = request.form['name']
+        email = request.form['email']
+        password = request.form['password']
+        role = request.form['role']
+
+
+        if User.query.filter_by(user_id=user_id).first():
+            return "User ID already taken. Please try again."
+
+        new_user = User(
+            user_id=user_id.strip(),
+            name=name.strip(),
+            email=email.strip(),
+            password=generate_password_hash(password.strip(), method='pbkdf2:sha256'),
+            role=role.strip()
+        )
+        db.session.add(new_user)
+        db.session.commit()
+
+       
+        session['user_id'] = new_user.user_id
+        session['role'] = new_user.role
+
+        if new_user.role == 'instructor':
+            return redirect(url_for('instructor_dashboard', instructor_id=new_user.user_id))
+        else:
+            return redirect(url_for('student_dashboard'))
+
+    return render_template('newregister.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))  
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        password = request.form['password']
+        user = User.query.filter_by(user_id=user_id).first()
+
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.user_id
+            session['name'] = user.name
+            session['role'] = user.role
+
+            if user.role == 'instructor':
+                return redirect(url_for('instructor_dashboard', instructor_id=user.user_id))
+            else:
+                return redirect(url_for('student_dashboard'))
+        else:
+            flash('Invalid credentials. Please try again.', 'error')
+
+    return render_template('newlogin.html')
+
