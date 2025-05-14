@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Study Sync</title>
+    <style>
+        :root {
+            --light-ash-grey: #D3D7D8;
+            --midnight-blue: #2C3E50;
+            --soft-gold: #C7A000;
+        }
+
+        body {
+            background-color: var(--light-ash-grey);
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+
+        h1 {
+            color: var(--midnight-blue);
+            margin-bottom: 30px;
+        }
+
+        form {
+            border: 1px solid #ddd;
+            padding: 25px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background-color: white;
+        }
+
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: var(--midnight-blue);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: var(--soft-gold);
+        }
+
+        #responseMessage {
+            color: red;
+            margin-top: 10px;
+        }
+
+        p {
+            margin-top: 15px;
+        }
+
+        a {
+            color: var(--midnight-blue);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            color: var(--soft-gold);
+        }
+    </style>
+</head>
+<body>
+    <h1>Login to Study Sync</h1>
+
+    <form method="POST" action="/login">
+        <input type="text" id="user_id" name="user_id" placeholder="User ID" required />
+        <input type="password" id="password" name="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+        <p id="responseMessage"></p>
+    </form>
+
+    <p>Don’t have an account? <a href="/register">Register here</a></p>
+</body>
+</html>
