@@ -243,3 +243,54 @@ def upload_assignment(course_id):
         db.session.commit()
 
     return redirect(url_for('instructor_dashboard', instructor_id=course.instructor_id))
+
+@app.route('/create_db')
+def create_db():
+    try:
+        db.drop_all()
+        db.create_all()
+
+        instructors = [
+            User(user_id='121000', name='Dr. Ayesha Khan', email='ayesha.khan@ocms.com', password=generate_password_hash('teach123'), role='instructor'),
+            User(user_id='122000', name='Prof. Salman Ahmed', email='salman.ahmed@ocms.com', password=generate_password_hash('teach124'), role='instructor'),
+            User(user_id='123000', name='Dr. Sana Raza', email='sana.raza@ocms.com', password=generate_password_hash('teach125'), role='instructor'),
+            User(user_id='124000', name='Dr. Asim Shah', email='asim.shah@ocms.com', password=generate_password_hash('teach126'), role='instructor'),
+            User(user_id='125000', name='Prof. Ali Farooq', email='ali.farooq@ocms.com', password=generate_password_hash('teach127'), role='instructor'),
+            User(user_id='126000', name='Dr. Nida Tariq', email='nida.tariq@ocms.com', password=generate_password_hash('teach128'), role='instructor'),
+            User(user_id='127000', name='Dr. Zain Abbas', email='zain.abbas@ocms.com', password=generate_password_hash('teach129'), role='instructor'),
+            User(user_id='128000', name='Dr. Saima Sadiq', email='saima.sadiq@ocms.com', password=generate_password_hash('teach130'), role='instructor'),
+            User(user_id='129000', name='Prof. Bilal Iqbal', email='bilal.iqbal@ocms.com', password=generate_password_hash('teach131'), role='instructor'),
+            User(user_id='130000', name='Dr. Fariha Zahid', email='fariha.zahid@ocms.com', password=generate_password_hash('teach132'), role='instructor'),
+        ]
+
+        students = [
+            User(user_id='202331', name='Ali Raza', email='ali.raza@student.ocms.com', password=generate_password_hash('study123'), role='student'),
+            User(user_id='202332', name='Hira Malik', email='hira.malik@student.ocms.com', password=generate_password_hash('study124'), role='student'),
+            User(user_id='202333', name='Ahmed Iqbal', email='ahmed.iqbal@student.ocms.com', password=generate_password_hash('study125'), role='student'),
+            User(user_id='202334', name='Sara Khan', email='sara.khan@student.ocms.com', password=generate_password_hash('study126'), role='student'),
+            User(user_id='202335', name='Usman Shah', email='usman.shah@student.ocms.com', password=generate_password_hash('study127'), role='student'),
+            User(user_id='202336', name='Nida Tariq', email='nida.tariq@student.ocms.com', password=generate_password_hash('study128'), role='student'),
+            User(user_id='202337', name='Muneeb Khan', email='muneeb.khan@student.ocms.com', password=generate_password_hash('study129'), role='student'),
+            User(user_id='202338', name='Ayesha Fatima', email='ayesha.fatima@student.ocms.com', password=generate_password_hash('study130'), role='student'),
+            User(user_id='202339', name='Zainab Ali', email='zainab.ali@student.ocms.com', password=generate_password_hash('study131'), role='student'),
+            User(user_id='202340', name='Omer Farooq', email='omer.farooq@student.ocms.com', password=generate_password_hash('study132'), role='student'),
+        ]
+
+        db.session.add_all(instructors + students)
+        db.session.commit()
+
+        courses = [
+            Course(course_id='CSE101', title='Introduction to Computer Science', description='Fundamentals of computer science', duration='4 months', instructor_id='121000'),
+            Course(course_id='CS232', title='Data Structures', description='Advanced data structures and algorithms', duration='4 months', instructor_id='122000'),
+            Course(course_id='CSE103', title='Operating Systems', description='Understanding of operating systems', duration='4 months', instructor_id='123000'),
+            Course(course_id='AI201', title='Introduction to Python', description='Learn Python basics including syntax, loops, and functions.', duration='4 months', instructor_id='124000'),
+            Course(course_id='CS231', title='Discrete Mathematics', description='Mathematical foundations for computer science', duration='4 months', instructor_id='125000'),
+            Course(course_id='CS112', title='Object-Oriented Programming', description='Introduction to object-oriented programming concepts', duration='4 months', instructor_id='126000'),
+            Course(course_id='MT101', title='Linear Algebra', description='Fundamentals of linear algebra', duration='4 months', instructor_id='127000'),
+            Course(course_id='HM101', title='English Communication', description='English communication skills for students', duration='4 months', instructor_id='128000'),
+            Course(course_id='ES205', title='Advanced Linear Algebra', description='Advanced topics in linear algebra', duration='4 months', instructor_id='129000'),
+            Course(course_id='CS233', title='Database Management System', description='Introduction to databases and SQL', duration='4 months', instructor_id='130000'),
+        ]
+
+        db.session.add_all(courses)
+        db.session.commit()
