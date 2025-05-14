@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Enrollments</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+
+  <style>
+    :root {
+      --midnight-blue: #003366;
+      --soft-gold: #C7A000;
+      --light-ash-grey: #F1F1F1;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--light-ash-grey);
+      padding: 2rem;
+      color: var(--midnight-blue);
+    }
+
+    .course-box {
+      background: white;
+      border-radius: 14px;
+      padding: 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    .course-box h3, h4 {
+      margin-bottom: 1rem;
+    }
+
+    .search-input {
+      padding: 0.6rem;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .student-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-bottom: 2rem;
+    }
+
+    .student-form input {
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 180px;
+    }
+
+    .student-form button,
+    .btn {
+      background-color: var(--soft-gold);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:hover,
+    .student-form button:hover {
+      background-color: #a38300;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+    }
+
+    thead {
+      background-color: var(--midnight-blue);
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+<div class="course-box">
+  <h3>All Enrolled Students</h3>
+
+  <input type="text" id="studentSearch" class="search-input" onkeyup="filterStudents()" placeholder="Search by name, ID or email...">
+
+  {% for course_item in course_items %}
+  <div class="student-form">
+    <input type="text" id="newName-{{ course_item.course.course_id }}" placeholder="Name">
+    <input type="text" id="newId-{{ course_item.course.course_id }}" placeholder="User ID">
+    <input type="text" id="newEmail-{{ course_item.course.course_id }}" placeholder="Email">
+    <button onclick="addStudent('{{ course_item.course.course_id }}')">Add</button>
+  </div>
+  {% endfor %}
+
+  <div class="table-wrapper">
+    <h4>Currently Enrolled</h4>
+    <table id="studentTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>User ID</th>
+          <th>Email</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for course_item in course_items %}
+          {% for student in course_item.students %}
+            <tr>
+              <td>{{ student.name }}</td>
+              <td>{{ student.user_id }}</td>
+              <td>{{ student.email }}</td>
+              <td>
+                <button onclick="deleteRow(this, '{{ course_item.course.course_id }}')" class="btn delete-btn">Delete</button>
+              </td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="table-wrapper">
+    <h4>Recently Unenrolled Students</h4>
+    <table>
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Course ID</th>
+          <th>Time Removed</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for deleted in deleted_enrollments %}
+        <tr>
+          <td>{{ deleted.student_id }}</td>
+          <td>{{ deleted.course_id }}</td>
+          <td>{{ deleted.deleted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td>
+            <button class="btn" onclick="restoreStudent('{{ deleted.student_id }}', '{{ deleted.course_id }}')">Restore</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  function filterStudents() {
+    const filter = document.getElementById('studentSearch').value.toLowerCase();
+    const rows = document.querySelectorAll('#studentTable tbody tr');
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      row.style.display = text.includes(filter) ? '' : 'none';
+    });
+  }
+
+  function addStudent(courseId) {
+    const name = document.getElementById('newName-' + courseId).value.trim();
+    const userId = document.getElementById('newId-' + courseId).value.trim();
+    const email = document.getElementById('newEmail-' + courseId).value.trim();
+
+    if (!name || !userId || !email || !courseId) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    fetch('/add_student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, course_id: courseId })
+    })
+    .then(async res => {
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text();
+        throw new Error("Server returned non-JSON: " + text);
+      }
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Student enrolled successfully!");
+        location.reload();
+      } else {
+        alert("Error: " + data.error);
+      }
+    })
+    .catch(err => alert("Server error: " + err.message));
+  }
+
+  function deleteRow(button, courseId) {
+    const row = button.closest('tr');
+    const userId = row.cells[1].innerText.trim();
+
+    fetch(`/delete_student/${userId}/${courseId}`, {
+      method: 'DELETE'
+    })
+    .then(async res => {
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text();
+        throw new Error("Server returned non-JSON: " + text);
+      }
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Student unenrolled from course!");
+        row.remove();
+      } else {
+        alert("Error: " + data.error);
+      }
+    })
+    .catch(err => alert("Server error: " + err.message));
+  }
+
+  function restoreStudent(studentId, courseId) {
+    fetch('/restore_student', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ student_id: studentId, course_id: courseId })
+    })
+    .then(async res => {
+      const contentType = res.headers.get('content-type');
+      const data = await (contentType.includes('application/json') ? res.json() : res.text());
+
+      if (res.ok) {
+        alert("Student restored!");
+        location.reload();
+      } else {
+        alert("Error: " + (data.error || data));
+      }
+    })
+    .catch(err => alert("Server error: " + err.message));
+  }
+</script>
+
+</body>
+</html>
