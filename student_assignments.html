@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Assignments</title>
+  <style>
+    :root {
+      --light-ash-grey: #D3D7D8;
+      --midnight-blue: #2C3E50;
+      --soft-gold: #C7A000;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--light-ash-grey); /* Light Ash Grey */
+      padding: 2rem;
+      color: var(--midnight-blue); /* Midnight Blue for text */
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      color: var(--midnight-blue); /* Midnight Blue */
+    }
+
+    .assignment {
+      background: white;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      border-left: 4px solid var(--midnight-blue); /* Midnight Blue accent */
+    }
+
+    h2 {
+      color: var(--midnight-blue); /* Midnight Blue */
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .download-btn {
+      background-color: var(--soft-gold); /* Soft Gold */
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1rem;
+      display: inline-block;
+      margin-top: 1rem;
+    }
+
+    .download-btn:hover {
+      background-color: #B68A00; /* Darker Soft Gold on hover */
+    }
+
+    form {
+      margin-top: 1rem;
+    }
+
+    input[type="file"] {
+      margin-top: 0.5rem;
+    }
+
+    button.submit-btn {
+      margin-top: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--midnight-blue); /* Midnight Blue */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button.submit-btn:hover {
+      background: #1E2A35; /* Darker Midnight Blue on hover */
+    }
+
+    .flash-message {
+      background-color: #d4edda;
+      padding: 10px;
+      border-radius: 5px;
+      color: #155724;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash-message">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <h1>Available Assignments</h1>
+
+  {% for assignment in assignments %}
+    <div class="assignment">
+      <h2>{{ assignment.title }}</h2>
+      <p>{{ assignment.description }}</p>
+      <a href="{{ url_for('download_assignment', filename=assignment.file_path) }}" target="_blank" class="download-btn">Download Assignment</a>
+      <form action="{{ url_for('submit_assignment') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="assignment_id" value="{{ assignment.assignment_id }}">
+        
+        <input type="file" name="submission_file" required> <br><br> <!-- Correct name -->
+        
+        <button type="submit" class="submit-btn">Submit Assignment</button>
+      </form>
+    </div>
+  {% else %}
+    <p>No assignments found.</p>
+  {% endfor %}
+
+</body>
+</html>
