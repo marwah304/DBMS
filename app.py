@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, request, session, url_for, redirect, jsonify, flash, send_from_directory, current_app
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -53,3 +54,45 @@ class Enrollment(db.Model):
     student_id = db.Column(db.String(50), db.ForeignKey('user.user_id'), nullable=False)
     course_id = db.Column(db.String(50), db.ForeignKey('course.course_id'), nullable=False)
     status = db.Column(db.String(50), nullable=False)
+
+class Assignment(db.Model):
+    assignment_id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    file_path = db.Column(db.String(200), nullable=False)
+    course_id = db.Column(db.String(50), db.ForeignKey('course.course_id'), nullable=False)
+
+class Submission(db.Model):
+    submission_id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.String, db.ForeignKey('user.user_id'))
+    assignment_id = db.Column(db.Integer, db.ForeignKey('assignment.assignment_id'))
+    file_path = db.Column(db.String)
+    grade = db.Column(db.String, nullable=True)  
+    feedback = db.Column(db.Text, nullable=True)  
+
+    #
+    student = db.relationship('User', backref='submissions')
+    assignment = db.relationship('Assignment', backref='submissions')
+
+class Progress(db.Model):
+    __tablename__ = 'progress'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.String(50), db.ForeignKey('user.user_id'), nullable=False)
+    course_id = db.Column(db.String(50), db.ForeignKey('course.course_id'), nullable=False)
+    completion_percentage = db.Column(db.Float, nullable=False, default=0) 
+    status = db.Column(db.String(50), nullable=False, default="in-progress") 
+    student = db.relationship('User', backref='progress')
+    course = db.relationship('Course', backref='progress')
+
+
+class DeletedEnrollment(db.Model):
+    __tablename__ = 'deleted_enrollments'
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.String(50), nullable=False)
+    course_id = db.Column(db.String(50), nullable=False)
+    deleted_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<DeletedEnrollment {self.student_id} removed from {self.course_id}>"
+
+
