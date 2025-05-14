@@ -95,4 +95,95 @@ class DeletedEnrollment(db.Model):
     def __repr__(self):
         return f"<DeletedEnrollment {self.student_id} removed from {self.course_id}>"
 
+@app.route('/instructor/dashboard/<instructor_id>')
+def instructor_dashboard(instructor_id):
+    instructor = User.query.filter_by(user_id=instructor_id, role='instructor').first()
+    if not instructor:
+        return "Instructor not found", 404
 
+    courses = Course.query.filter_by(instructor_id=instructor_id).all()
+    course_items = []
+
+    all_students_set = {}
+
+    for course in courses:
+        students = User.query.join(Enrollment).filter(
+            Enrollment.course_id == course.course_id,
+            User.user_id == Enrollment.student_id
+        ).all()
+
+        for student in students:
+            all_students_set[student.user_id] = student
+
+        assignments = Assignment.query.filter_by(course_id=course.course_id).all()
+        course_items.append({
+            'course': course,
+            'students': students,
+            'assignments': assignments
+        })
+
+    all_students = list(all_students_set.values())
+
+    deleted_enrollments = DeletedEnrollment.query.order_by(DeletedEnrollment.deleted_at.desc()).limit(10).all()
+
+    return render_template(
+        'instructor_dashboard.html',
+        instructor=instructor,
+        course_items=course_items,
+        all_students=all_students,
+        deleted_enrollments=deleted_enrollments
+    )
+
+@app.route('/restore_student', methods=['POST'])
+def restore_student():
+    data = request.get_json()
+    student_id = data.get('student_id')
+    course_id = data.get('course_id')
+
+    student = User.query.filter_by(user_id=student_id, role='student').first()
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    existing = Enrollment.query.filter_by(student_id=student_id, course_id=course_id).first()
+    if existing:
+        return jsonify({"error": "Already enrolled"}), 409
+
+    new_enrollment = Enrollment(student_id=student_id, course_id=course_id, status='enrolled')
+    db.session.add(new_enrollment)
+    db.session.commit()
+
+    # The trigger will handle the removal of the deleted record from the DeletedEnrollment table
+    return jsonify({"message": "Student restored successfully"}), 200
+
+
+@app.route('/add_student', methods=['POST'])
+def add_student():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    course_id = data.get('course_id')
+
+    student = User.query.filter_by(user_id=user_id, role='student').first()
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    existing_enrollment = Enrollment.query.filter_by(student_id=user_id, course_id=course_id).first()
+    if existing_enrollment:
+        return jsonify({"error": "Student is already enrolled in this course"}), 409
+
+    enrollment = Enrollment(student_id=user_id, course_id=course_id, status='enrolled')
+    db.session.add(enrollment)
+    db.session.commit()
+
+    return jsonify({"message": "Student enrolled successfully"}), 200
+
+@app.route('/delete_student/<user_id>/<course_id>', methods=['DELETE'])
+def delete_student_from_course(user_id, course_id):
+    enrollment = Enrollment.query.filter_by(student_id=user_id, course_id=course_id).first()
+    if not enrollment:
+        return jsonify({"error": "Enrollment not found"}), 404
+
+    # Deleting the enrollment record, which will trigger the backup via the trigger
+    db.session.delete(enrollment)
+    db.session.commit()
+
+    return jsonify({"message": "Student unenrolled successfully (backup handled by trigger)"}), 200
