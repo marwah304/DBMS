@@ -405,3 +405,152 @@ def login():
 
     return render_template('newlogin.html')
 
+@app.route('/instructor/<instructor_id>/add_course', methods=['GET', 'POST'])
+def add_course(instructor_id):
+    instructor = User.query.filter_by(user_id=instructor_id, role='instructor').first()
+    if not instructor:
+        return "Instructor not found", 404
+
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        duration = request.form['duration']
+
+        new_course = Course(
+            course_id=f"COURSE{Course.query.count() + 1}",
+            title=title,
+            description=description,
+            duration=duration,
+            instructor_id=instructor_id
+        )
+        db.session.add(new_course)
+        db.session.commit()
+        return redirect(url_for('instructor_dashboard', instructor_id=instructor_id))
+
+    return render_template('add_course.html', instructor=instructor)
+
+@app.route('/student_dashboard')
+def student_dashboard():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    user = User.query.options(joinedload(User.enrollments).joinedload(Enrollment.course)).filter_by(user_id=user_id).first()
+    if not user:
+        return "User not found", 404
+
+    enrolled_courses = [enrollment.course for enrollment in user.enrollments]
+    all_courses = Course.query.all()
+
+    return render_template('nstudentdashboard.html', user=user, enrolled_courses=enrolled_courses, all_courses=all_courses)
+
+@app.route('/courses')
+def browse_courses():
+    courses = Course.query.all()
+    if not courses:
+        return "No courses available", 404
+    return render_template('browsecourses.html', courses=courses)
+
+@app.route('/student_profile')
+def student_profile():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    user = User.query.filter_by(user_id=user_id).first()
+    
+    if not user:
+        return "User not found", 404
+
+    return render_template('student_dashboard.html', user=user)
+
+
+@app.route('/test_db_connection')
+def test_db_connection():
+    try:
+        db.session.execute(text('SELECT 1'))
+        return 'Database connection successful.'
+    except Exception as e:
+        return f'Database connection failed: {e}'
+
+@app.route('/')
+def index():
+    return render_template('home.html')
+
+@app.route('/download_assignment/<filename>')
+def download_assignment(filename):
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER_ASSIGNMENTS'], filename, as_attachment=True)
+    except FileNotFoundError:
+        return "File not found", 404
+
+
+@app.route('/download/<path:filename>')
+def download_file(filename):
+    directory = os.path.join(current_app.root_path, 'static', 'submissions')
+
+    try:
+        return send_from_directory(directory, filename, as_attachment=True)
+    except FileNotFoundError:
+        return "File not found", 404
+
+@app.route('/my-courses', methods=['GET', 'POST'])
+def my_courses():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+
+    user = User.query.filter_by(user_id=user_id).first()
+    if not user or user.role != 'student':
+        return "Student not found", 404
+
+    all_courses = Course.query.all()
+
+    enrolled_course_ids = {e.course_id for e in Enrollment.query.filter_by(student_id=user_id).all()}
+    enrolled_courses = [c for c in all_courses if c.course_id in enrolled_course_ids]
+    available_courses = [c for c in all_courses if c.course_id not in enrolled_course_ids]
+
+    if request.method == 'POST':
+        course_id = request.form.get('course_id')
+        if course_id and course_id not in enrolled_course_ids:
+            enrollment = Enrollment(student_id=user_id, course_id=course_id, status='enrolled')
+            db.session.add(enrollment)
+            db.session.commit()
+            return redirect(url_for('my_courses'))
+
+    return render_template(
+        'my_courses.html',
+        enrolled_courses=enrolled_courses,
+        available_courses=available_courses
+    )
+
+@app.route('/assignments')
+def list_assignments():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    user = User.query.filter_by(user_id=user_id).first()
+    
+    if not user:
+        return "User not found", 404
+
+    enrolled_courses = [enrollment.course for enrollment in user.enrollments]
+    
+    if enrolled_courses:
+        assignments = Assignment.query.filter(Assignment.course_id.in_([course.course_id for course in enrolled_courses])).all()
+    else:
+        assignments = []
+
+    assignments_data = []
+    for assignment in assignments:
+        assignments_data.append({
+            'assignment_id': assignment.assignment_id,
+            'title': assignment.title,
+            'description': assignment.description,
+            'file_path': assignment.file_path
+        })
+
+    return render_template('student_assignments.html', assignments=assignments_data)
+
