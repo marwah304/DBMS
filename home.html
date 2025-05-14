@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Sync - Course Management System</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #003366; /* Deep blue */
+      --accent-color: #C7A000; /* Gold accents */
+      --light-grey: #F1F1F1;   /* Light grey background */
+      --dark-grey: #333;       /* Dark text */
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--light-grey);
+      color: var(--dark-grey);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 3rem;
+      background-color: var(--primary-color);
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      color: white;
+    }
+
+    .nav-links a {
+      color: white;
+      font-weight: 600;
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-size: 1rem;
+    }
+
+    .nav-links a:hover {
+      text-decoration: underline;
+    }
+
+    .main-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4rem 3rem;
+      flex-wrap: wrap;
+    }
+
+    .hero-text {
+      flex: 1;
+      min-width: 280px;
+      max-width: 600px;
+      padding: 1rem;
+    }
+
+    .hero-text h2 {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .hero-text p {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .cta-buttons a {
+      padding: 0.8rem 1.5rem;
+      background-color: var(--accent-color);
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 6px;
+      transition: background-color 0.3s ease;
+    }
+
+    .cta-buttons a:hover {
+      background-color: #b68a00;
+    }
+
+    .image-container {
+      flex: 1;
+      min-width: 280px;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .image-container img {
+      max-width: 80%;
+      height: auto;
+      border-radius: 10px;
+      margin-left: 2rem;
+    }
+
+    footer {
+      background-color: var(--primary-color);
+      padding: 1rem;
+      text-align: center;
+      color: white;
+      font-size: 0.95rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Section -->
+  <div class="header">
+    <h1>Study Sync</h1>
+    <div class="nav-links">
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('register') }}">Register</a>
+    </div>
+  </div>
+
+  <!-- Main Content Section -->
+  <div class="main-content">
+    <div class="hero-text">
+      <h2>Welcome to Study Sync</h2>
+      <p>Study Sync is a powerful course management system designed to help students and instructors streamline their learning and teaching experience. From course enrollment to assignment submissions and progress tracking, Study Sync offers everything you need to succeed.</p>
+      <div class="cta-buttons">
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('register') }}">Get Started</a>
+      </div>
+    </div>
+
+    <div class="image-container">
+      <img src="{{ url_for('static', filename='images/student-image.jpg') }}" alt="Study Sync Interface" />
+    </div>
+  </div>
+
+  <!-- Footer Section -->
+  <footer>
+    <p>&copy; 2025 Study Sync. All Rights Reserved.</p>
+  </footer>
+
+</body>
+</html>
