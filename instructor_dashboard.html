@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instructor Dashboard</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" />
+
+  <style>
+    :root {
+      --midnight-blue: #003366;
+      --soft-gold: #C7A000;
+      --light-ash-grey: #F1F1F1;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      background: var(--light-ash-grey);
+      color: var(--midnight-blue);
+    }
+
+    .sidebar {
+      width: 250px;
+      background: var(--midnight-blue);
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .sidebar h2 {
+      font-size: 1.5rem;
+      text-align: center;
+      color: white;
+      margin-bottom: 1rem;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      text-decoration: none;
+      color: white;
+      font-size: 1rem;
+      padding: 0.7rem 1rem;
+      border-radius: 10px;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .nav-link:hover {
+      background: var(--soft-gold);
+      transform: translateX(5px);
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2.5rem;
+    }
+
+    .course-box {
+      background: white;
+      border-radius: 14px;
+      padding: 2rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      line-height: 1.8;
+    }
+
+    .course-box h3 {
+      margin-bottom: 0.8rem;
+      font-size: 1.3rem;
+    }
+
+    .course-box p,
+    .course-box ul li {
+      margin-bottom: 0.6rem;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .course-box ul {
+      padding-left: 1.2rem;
+    }
+
+    .btn {
+      margin-top: 1rem;
+      padding: 0.8rem 1.4rem;
+      font-size: 1rem;
+      background: var(--soft-gold);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #a38300;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--midnight-blue);
+      color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    .modal-content input,
+    .modal-content textarea {
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.7rem;
+      border-radius: 6px;
+      border: none;
+    }
+
+    .modal-content button {
+      background: var(--soft-gold);
+      color: white;
+      padding: 0.7rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+      cursor: pointer;
+    }
+
+    .modal-content button:hover {
+      background: #a38300;
+    }
+
+    .assignment-link {
+      text-decoration: none;
+      color: var(--midnight-blue);
+      font-weight: bold;
+    }
+
+    #profileBox {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--midnight-blue);
+      color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      text-align: center;
+      max-width: 500px;
+      width: 90%;
+    }
+
+    #logoutModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #logoutModal .modal-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    #logoutModal h3 {
+      color: var(--midnight-blue);
+      margin-bottom: 1rem;
+    }
+
+    #logoutModal p {
+      color: var(--midnight-blue);
+      font-size: 1.05rem;
+      margin-bottom: 1rem;
+    }
+
+    .logout-button {
+      background: var(--soft-gold);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      margin: 0 0.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .logout-button:hover {
+      background: #b38a00;
+    }
+
+    .cancel-button {
+      background: #ccc;
+      color: var(--midnight-blue);
+      border: none;
+      padding: 0.6rem 1.4rem;
+      margin: 0 0.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .cancel-button:hover {
+      background: #bbb;
+    }
+
+    .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    }
+
+    .modal-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    }
+    .settings-button {
+    background: var(--soft-gold);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.4rem;
+    margin: 0.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    }
+
+    .settings-button:hover {
+    background: #b38a00;
+    }
+
+    .table-wrapper {
+    overflow-x: auto;
+    margin-top: 1rem;
+    }
+
+    table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+    text-align: left;
+    }
+
+    thead {
+    background-color: var(--midnight-blue);
+    color: white;
+    }
+
+    th, td {
+    border: 1px solid #ccc;
+    padding: 0.8rem;
+    }
+
+    tr:nth-child(even) {
+    background-color: #f9f9f9;
+    }
+
+    .student-form {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    flex-wrap: wrap;
+    }
+
+    .student-form input {
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    width: 180px;
+    }
+
+    .student-form button {
+    background-color: var(--soft-gold);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    }
+
+    .student-form button:hover {
+    background-color: #a38300;
+    }
+
+    .delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    }
+
+    .delete-btn:hover {
+    background-color: #c0392b;
+    }
+
+
+  </style>
+  
+</head>
+<body>
+<!-- Inside your <body> sidebar -->
+    <div class="sidebar">
+        <h2>Instructor</h2>
+        <div class="nav-links">
+          <a href="javascript:void(0);" class="nav-link" onclick="showProfile()">
+            <i class="fas fa-user"></i> Profile
+          </a>
+          <a href="javascript:void(0);" class="nav-link" onclick="showSettingsModal()">
+            <i class="fas fa-cog"></i> Settings
+          </a>          
+        </div>
+      </div>
+    
+
+  <div class="main-content">
+    {% for course_item in course_items %}
+      <div class="course-box">
+        <h3>{{ course_item.course.title }} ({{ course_item.course.course_id }})</h3>
+        <p><strong>Description:</strong> {{ course_item.course.description }}</p>
+        <p><strong>Duration:</strong> {{ course_item.course.duration }}</p>
+        <button class="btn" onclick="openUploadModal('{{ course_item.course.course_id }}')">Upload Assignment</button>
+
+        <h4>Assignments</h4>
+        <ul>
+          {% for assignment in course_item.assignments %}
+            <li>
+              <strong>{{ assignment.title }}</strong> — {{ assignment.description }}<br>
+              <a class="assignment-link" href="{{ url_for('download_assignment', filename=assignment.file_path) }}" target="_blank">View File</a> |
+              <a class="assignment-link" href="{{ url_for('view_submissions', assignment_id=assignment.assignment_id) }}">View Submissions</a>
+            </li>
+          {% else %}
+            <li>No assignments uploaded.</li>
+          {% endfor %}
+        </ul>
+
+        <h4>Grades</h4>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+          <thead style="background: var(--midnight-blue); color: white;">
+            <tr>
+              <th style="padding: 8px; border: 1px solid #ccc;">Assignment</th>
+              <th style="padding: 8px; border: 1px solid #ccc;">Student</th>
+              <th style="padding: 8px; border: 1px solid #ccc;">Grade</th>
+              <th style="padding: 8px; border: 1px solid #ccc;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for assignment in course_item.assignments %}
+              {% for submission in assignment.submissions %}
+                <tr>
+                  <td style="padding: 8px; border: 1px solid #ccc;">{{ assignment.title }}</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">{{ submission.student.name }}</td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">
+                    <input type="text" value="{{ submission.grade or '' }}" 
+                          data-id="{{ submission.submission_id }}"
+                          style="padding: 6px; width: 100%;" />
+                  </td>
+                  <td style="padding: 8px; border: 1px solid #ccc;">
+                    <button class="btn" onclick="updateGrade(document.querySelector('[data-id=\'{{ submission.submission_id }}\']').value, '{{ submission.submission_id }}')">Save</button>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Upload Assignment Modal -->
+      <div class="modal" id="uploadModal-{{ course_item.course.course_id }}">
+        <div class="modal-content">
+          <h3>Upload Assignment - {{ course_item.course.course_id }}</h3>
+          <form action="{{ url_for('upload_assignment', course_id=course_item.course.course_id) }}" method="POST" enctype="multipart/form-data">
+            <input type="text" name="title" placeholder="Assignment Title" required>
+            <textarea name="description" placeholder="Description" required></textarea>
+            <input type="file" name="assignment_file" required>
+            <button type="submit">Upload</button>
+            <button type="button" onclick="closeUploadModal('{{ course_item.course.course_id }}')">Cancel</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+
+    <button class="btn" onclick="showAddCourseModal()">Add New Course</button>
+  </div>
+
+  <!-- Add Course Modal -->
+  <div class="modal" id="addCourseModal">
+    <div class="modal-content">
+      <h3>Add New Course</h3>
+      <form action="{{ url_for('add_course', instructor_id=instructor.user_id) }}" method="POST">
+        <input type="text" name="title" placeholder="Course Title" required>
+        <textarea name="description" placeholder="Course Description" required></textarea>
+        <input type="text" name="duration" placeholder="Duration (e.g., 6 weeks)" required>
+        <button type="submit">Add</button>
+        <button type="button" onclick="hideAddCourseModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+
+<div class="course-box">
+  <h3>All Enrolled Students</h3>
+
+  <!-- Search -->
+  <input type="text" id="studentSearch" class="search-input" onkeyup="filterStudents()" placeholder="Search by name, ID or email...">
+
+  <!-- Add Student Form -->
+  {% for course_item in course_items %}
+    <div class="student-form">
+      <input type="text" id="newName-{{ course_item.course.course_id }}" placeholder="Name">
+      <input type="text" id="newId-{{ course_item.course.course_id }}" placeholder="User ID">
+      <input type="text" id="newEmail-{{ course_item.course.course_id }}" placeholder="Email">
+      <button onclick="addStudent('{{ course_item.course.course_id }}')">Add</button>
+    </div>
+  {% endfor %}
+
+  <!-- Enrolled Students Table -->
+  <div class="table-wrapper" style="margin-top: 2rem;">
+    <h4>Currently Enrolled</h4>
+    <table id="studentTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>User ID</th>
+          <th>Email</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for course_item in course_items %}
+          {% for student in course_item.students %}
+            <tr>
+              <td>{{ student.name }}</td>
+              <td>{{ student.user_id }}</td>
+              <td>{{ student.email }}</td>
+              <td>
+                <button onclick="deleteRow(this, '{{ course_item.course.course_id }}')" class="btn" style="background: #e74c3c;">Delete</button>
+              </td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Recently Unenrolled Table -->
+<div class="table-wrapper" style="margin-top: 2rem;">
+  <h4>Recently Unenrolled Students</h4>
+  <table>
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Course ID</th>
+        <th>Time Removed</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for deleted in deleted_enrollments %}
+      <tr>
+        <td>{{ deleted.student_id }}</td>
+        <td>{{ deleted.course_id }}</td>
+        <td>{{ deleted.deleted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+        <td>
+          <button class="btn" onclick="restoreStudent('{{ deleted.student_id }}', '{{ deleted.course_id }}')">Restore</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+
+  
+  
+  <!-- Logout Confirmation Modal -->
+<div id="logoutOverlay" style="display: none;">
+    <div id="logoutBox" style="
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      text-align: center;
+      z-index: 1000;
+    ">
+      <h3>Are you sure you want to logout?</h3><br>
+      <button onclick="performLogout()" class="btn" style="background: #C7A000;">Yes, Logout</button>
+      &nbsp;
+      <button onclick="closeLogoutPopup()" class="btn" style="background: #ccc; color: #003366;">Cancel</button>
+    </div>
+    <div style="
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+    " onclick="closeLogoutPopup()"></div>
+  </div>
+  
+
+  <!-- Profile Modal -->
+  <div id="profileBox">
+    <h3>Profile</h3>
+    <p>{{ instructor.name }}</p>
+    <p>User ID: {{ instructor.user_id }}</p>
+    <p>Email: {{ instructor.email }}</p>
+    <button onclick="closeProfile()">Close</button>
+  </div>
+
+
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="modal-overlay" onclick="closeModal('settingsModal')">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <h3 style="color: var(--midnight-blue); margin-bottom: 1rem;">Settings</h3>
+      <button class="settings-button" onclick="showLogoutModal()">Logout</button>
+      <button class="settings-button" onclick="closeModal('settingsModal')">Close</button>
+    </div>
+  </div>
+
+  <!-- Logout Modal -->
+  <div id="logoutModal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 400px; text-align: center;">
+      <h3 style="color: var(--midnight-blue); margin-bottom: 1rem;">Confirm Logout</h3>
+      <p style="margin: 1rem 0; font-size: 1.05rem; color: var(--midnight-blue);">Are you sure you want to logout?</p>
+      <form action="{{ url_for('logout') }}" method="GET">
+        <button type="submit" class="logout-button">Yes, Logout</button>
+        <button type="button" class="cancel-button" onclick="closeLogoutModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
+
+
+  <script>
+    function showProfile() {
+      document.getElementById('profileBox').style.display = 'block';
+    }
+
+    function closeProfile() {
+      document.getElementById('profileBox').style.display = 'none';
+    }
+
+    function showAddCourseModal() {
+      document.getElementById('addCourseModal').style.display = 'flex';
+    }
+
+    function hideAddCourseModal() {
+      document.getElementById('addCourseModal').style.display = 'none';
+    }
+
+    function openUploadModal(courseId) {
+      document.getElementById('uploadModal-' + courseId).style.display = 'flex';
+    }
+
+    function closeUploadModal(courseId) {
+      document.getElementById('uploadModal-' + courseId).style.display = 'none';
+    }
+
+    function toggleSettingsMenu() {
+        const menu = document.getElementById('settingsMenu');
+        menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+    }
+    function showSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        modal.style.display = 'flex';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+    }
+
+
+    function showLogoutModal() {
+      document.getElementById('settingsModal').style.display = 'none';
+      document.getElementById('logoutModal').style.display = 'flex';
+    }
+
+    function confirmLogout() {
+      document.getElementById('logoutModal').style.display = 'flex';
+    }
+    function performLogout() {
+        window.location.href = "{{ url_for('logout') }}";
+    }
+    function closeLogoutPopup() {
+      document.getElementById('logoutModal').style.display = 'none';
+    }
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function filterStudents() {
+        const filter = document.getElementById('studentSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('#studentTable tbody tr');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    }
+
+    function addStudent(courseId) {
+      const name = document.getElementById('newName-' + courseId).value.trim();
+      const userId = document.getElementById('newId-' + courseId).value.trim();
+      const email = document.getElementById('newEmail-' + courseId).value.trim();
+
+      if (!name || !userId || !email || !courseId) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      // Only enroll existing user
+      fetch('/add_student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, course_id: courseId })
+      })
+      .then(async res => {
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await res.text();
+          throw new Error("Server returned non-JSON: " + text);
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("Student enrolled successfully!");
+          location.reload();  // Refresh to show updated table
+        } else {
+          alert("Error: " + data.error);
+        }
+      })
+      .catch(err => alert("Server error: " + err.message));
+    }
+
+
+    function deleteRow(button, courseId) {
+      const row = button.closest('tr');
+      const userId = row.cells[1].innerText.trim();  // Assumes column 2 is User ID
+
+      fetch(`/delete_student/${userId}/${courseId}`, {
+        method: 'DELETE'
+      })
+      .then(async res => {
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await res.text();
+          throw new Error("Server returned non-JSON: " + text);
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+          alert("Student unenrolled from course!");
+          row.remove();
+        } else {
+          alert("Error: " + data.error);
+        }
+      })
+      .catch(err => alert("Server error: " + err.message));
+    }
+
+
+    function saveGrade(cell, userId) {
+      const grade = cell.innerText.trim();
+
+      fetch('/update_grade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId, grade: grade }),
+      })
+        .then(response => {
+          if (!response.ok) throw new Error('Grade update failed');
+          return response.json();
+        })
+        .then(data => {
+          console.log('Grade updated:', data);
+        })
+        .catch(error => {
+          alert('Error updating grade.');
+          console.error(error);
+        });
+    }
+
+    function updateGrade(newGrade, submissionId) {
+      fetch(`/grade_assignment/${submissionId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ grade: newGrade })
+      })
+      .then(res => {
+        if (res.ok) {
+          alert("Grade updated successfully!");
+        } else {
+          alert("Failed to update grade.");
+        }
+      });
+    }
+
+    function restoreStudent(studentId, courseId) {
+      fetch('/restore_student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId, course_id: courseId })
+      })
+      .then(async res => {
+        const contentType = res.headers.get('content-type');
+        const data = await (contentType.includes('application/json') ? res.json() : res.text());
+
+        if (res.ok) {
+          alert("Student restored!");
+          location.reload();
+        } else {
+          alert("Error: " + (data.error || data));
+        }
+      })
+      .catch(err => alert("Server error: " + err.message));
+    }
+
+  </script>
+</body>
+</html>
