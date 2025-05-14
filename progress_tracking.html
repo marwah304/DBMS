@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Progress Tracking</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f7f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2C3E50;
+    }
+
+    .progress-courses {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .course-card {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .course-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .course-card h3 {
+      font-size: 1.5rem;
+      color: #2C3E50;
+      margin-bottom: 10px;
+    }
+
+    .course-card p {
+      font-size: 1rem;
+      color: #7F8C8D;
+      margin: 5px 0;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 30px;
+      font-size: 1.2rem;
+      color: #3498DB;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Progress Tracking</h1>
+
+  <div class="progress-courses">
+    {% if progress_data %}
+      {% for course in progress_data %}
+        <div class="course-card">
+          <h3>{{ course['course'].name }} ({{ course['course_id'] }})</h3> <!-- Display course_id here -->
+          <p>Status: {{ course['status'] }}</p>
+          <p>Completion: {{ course['progress_percentage'] }}%</p>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No progress data available.</p>
+    {% endif %}
+  </div>
+
+  <a href="{{ url_for('student_dashboard') }}" class="back-link">Back to Dashboard</a>
+</body>
+</html>
