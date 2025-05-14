@@ -187,3 +187,59 @@ def delete_student_from_course(user_id, course_id):
     db.session.commit()
 
     return jsonify({"message": "Student unenrolled successfully (backup handled by trigger)"}), 200
+
+@app.route('/grade_assignment_edited/<int:submission_id>', methods=['POST'])
+def update_assignment_grade(submission_id):
+    data = request.get_json()
+    grade = data.get('grade')
+
+    submission = Submission.query.get(submission_id)
+    if submission:
+        submission.grade = grade
+        db.session.commit()
+        return jsonify({'message': 'Grade updated'}), 200
+    return jsonify({'error': 'Submission not found'}), 404
+
+
+
+@app.route('/update_grade', methods=['POST'])
+def update_grade():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    grade = data.get('grade')
+
+    student = User.query.filter_by(user_id=user_id, role='student').first()
+    if student:
+        student.grade = grade
+        db.session.commit()
+        return jsonify({'status': 'success', 'message': 'Grade updated'})
+    return jsonify({'status': 'error', 'message': 'Student not found'}), 404
+
+
+
+@app.route('/upload_assignment/<course_id>', methods=['POST'])
+def upload_assignment(course_id):
+    course = Course.query.filter_by(course_id=course_id).first()
+    if not course:
+        return "Course not found", 404
+
+    title = request.form['title']
+    description = request.form['description']
+    file = request.files['assignment_file']
+
+    if file:
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(app.config['UPLOAD_FOLDER_ASSIGNMENTS'], filename)
+        file.save(save_path)
+
+        assignment = Assignment(
+            title=title,
+            description=description,
+            file_path=filename,  
+            course_id=course_id
+        )
+
+        db.session.add(assignment)
+        db.session.commit()
+
+    return redirect(url_for('instructor_dashboard', instructor_id=course.instructor_id))
