@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Courses</title>
+
+  <!-- Google Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <style>
+    :root {
+      --light-ash-grey: #D3D7D8;
+      --midnight-blue: #2C3E50;
+      --soft-gold: #C7A000;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: var(--light-ash-grey);
+      padding: 2rem;
+      color: var(--midnight-blue);
+    }
+
+    h1, h2 {
+      text-align: center;
+      font-size: 1.5rem;
+      color: var(--midnight-blue);
+    }
+
+    .page-layout {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .left-panel {
+      flex: 2;
+    }
+
+    .right-panel {
+      flex: 1;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      height: fit-content;
+    }
+
+    .courses-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .course-card {
+      background-color: #ffffff;
+      border-left: 4px solid var(--midnight-blue);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      padding: 1rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .course-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .course-icon {
+      font-size: 1.5rem;
+      color: var(--soft-gold);
+      margin-bottom: 0.3rem;
+    }
+
+    .course-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+
+    .course-id {
+      font-size: 0.85rem;
+      color: #555;
+    }
+
+    .message {
+      font-size: 0.95rem;
+      color: #555;
+      margin-top: 1rem;
+    }
+
+    .enroll-form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .enroll-form select,
+    .enroll-form button {
+      padding: 0.5rem 0.8rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      border-radius: 6px;
+      border: 1px solid var(--midnight-blue);
+    }
+
+    .enroll-form button {
+      background-color: var(--soft-gold);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .enroll-form button:hover {
+      background-color: #a88c00;
+    }
+
+    @media (max-width: 768px) {
+      .page-layout {
+        flex-direction: column;
+      }
+
+      .right-panel {
+        margin-top: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-layout">
+    <!-- Enrolled Courses -->
+    <div class="left-panel">
+      <h2>Enrolled Courses</h2>
+      <div class="courses-section">
+        {% if enrolled_courses %}
+          {% for course in enrolled_courses %}
+            <div class="course-card">
+              <div class="course-icon"><i class="fas fa-graduation-cap"></i></div>
+              <div class="course-title">{{ course.title }}</div>
+              <div class="course-id">ID: {{ course.course_id }}</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="message">No courses enrolled yet.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Enroll Section (No Background) -->
+    <div class="right-panel">
+      {% if available_courses %}
+        <h2>Enroll in a New Course</h2>
+        <form method="POST" class="enroll-form">
+          <select name="course_id" required>
+            <option value="" disabled selected>Select a course</option>
+            {% for course in available_courses %}
+              <option value="{{ course.course_id }}">{{ course.title }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Enroll</button>
+        </form>
+      {% else %}
+        <p class="message">You are enrolled in all available courses.</p>
+      {% endif %}
+    </div>
+  </div>
+
+</body>
+</html>
